@@ -2,6 +2,8 @@
 
 API RESTful desenvolvida com NestJS para gerenciamento de tarefas (To-Do List) com autenticação JWT e banco de dados PostgreSQL.
 
+**Repositório:** [https://github.com/leandrosuy2/todo-backend](https://github.com/leandrosuy2/todo-backend)
+
 ## 🚀 Tecnologias
 
 - **NestJS** - Framework Node.js progressivo
@@ -14,29 +16,106 @@ API RESTful desenvolvida com NestJS para gerenciamento de tarefas (To-Do List) c
 
 ## 📋 Pré-requisitos
 
+### Opção 1: Executar sem Docker
 - Node.js (v18 ou superior)
 - PostgreSQL (v12 ou superior)
 - npm ou yarn
 
+### Opção 2: Executar com Docker (Recomendado)
+- Docker instalado
+- Docker Compose instalado
+
 ## ⚙️ Instalação
 
-1. Clone o repositório:
+### 🐳 Opção 1: Executar com Docker (Recomendado)
+
+A forma mais fácil de executar o projeto é usando Docker Compose, que já configura o banco de dados PostgreSQL automaticamente.
+
+1. **Clone o repositório:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/leandrosuy2/todo-backend.git
 cd todo-backend
 ```
 
-2. Instale as dependências:
+2. **Crie o arquivo `.env` na raiz do projeto:**
+```env
+# Database Configuration
+DB_HOST=postgres
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=todo_db
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+
+# Application Configuration
+PORT=3000
+NODE_ENV=development
+```
+
+3. **Execute com Docker Compose:**
+
+**Produção:**
+```bash
+# Construir e iniciar os containers
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f app
+
+# Parar os containers
+docker-compose down
+```
+
+**Desenvolvimento (com hot-reload):**
+```bash
+# Construir e iniciar os containers
+docker-compose -f docker-compose.dev.yml up
+
+# Parar os containers
+docker-compose -f docker-compose.dev.yml down
+```
+
+A aplicação estará disponível em `http://localhost:3000`  
+A documentação Swagger estará disponível em `http://localhost:3000/api`
+
+**Comandos úteis do Docker:**
+```bash
+# Verificar status dos containers
+docker-compose ps
+
+# Acessar o banco de dados
+docker-compose exec postgres psql -U postgres -d todo_db
+
+# Ver logs do banco de dados
+docker-compose logs -f postgres
+
+# Reconstruir a aplicação após mudanças
+docker-compose build app
+docker-compose up -d
+
+# Limpar tudo e começar do zero
+docker-compose down -v
+```
+
+### 💻 Opção 2: Executar sem Docker
+
+1. **Clone o repositório:**
+```bash
+git clone https://github.com/leandrosuy2/todo-backend.git
+cd todo-backend
+```
+
+2. **Instale as dependências:**
 ```bash
 npm install
 ```
 
-3. Configure as variáveis de ambiente:
+3. **Configure as variáveis de ambiente:**
 ```bash
-cp .env.example .env
+# Crie o arquivo .env com as seguintes variáveis:
 ```
-
-Edite o arquivo `.env` com suas credenciais do banco de dados:
 
 ```env
 DB_HOST=localhost
@@ -51,18 +130,28 @@ PORT=3000
 NODE_ENV=development
 ```
 
-4. Crie o banco de dados PostgreSQL:
+4. **Crie o banco de dados PostgreSQL:**
 ```sql
 CREATE DATABASE todo_db;
 ```
 
-5. Execute as migrações (o Sequelize criará as tabelas automaticamente em desenvolvimento):
+5. **Execute as migrações (o Sequelize criará as tabelas automaticamente em desenvolvimento):**
 ```bash
 npm run start:dev
 ```
 
 ## 🏃 Executando a aplicação
 
+### Com Docker
+```bash
+# Produção
+docker-compose up -d
+
+# Desenvolvimento (com hot-reload)
+docker-compose -f docker-compose.dev.yml up
+```
+
+### Sem Docker
 ```bash
 # Desenvolvimento
 npm run start:dev
@@ -72,8 +161,7 @@ npm run build
 npm run start:prod
 ```
 
-A aplicação estará disponível em `http://localhost:3000`
-
+A aplicação estará disponível em `http://localhost:3000`  
 A documentação Swagger estará disponível em `http://localhost:3000/api`
 
 ## 📚 Endpoints da API
@@ -488,21 +576,39 @@ http://localhost:3000/api
 
 ## 🔧 Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `DB_HOST` | Host do PostgreSQL | `localhost` |
-| `DB_PORT` | Porta do PostgreSQL | `5432` |
-| `DB_USER` | Usuário do PostgreSQL | `postgres` |
-| `DB_PASSWORD` | Senha do PostgreSQL | `postgres` |
-| `DB_NAME` | Nome do banco de dados | `todo_db` |
-| `JWT_SECRET` | Chave secreta para JWT | - |
-| `PORT` | Porta da aplicação | `3000` |
-| `NODE_ENV` | Ambiente de execução | `development` |
+| Variável | Descrição | Padrão | Observação |
+|----------|-----------|--------|------------|
+| `DB_HOST` | Host do PostgreSQL | `localhost` | Use `postgres` quando executando com Docker |
+| `DB_PORT` | Porta do PostgreSQL | `5432` | - |
+| `DB_USER` | Usuário do PostgreSQL | `postgres` | - |
+| `DB_PASSWORD` | Senha do PostgreSQL | `postgres` | - |
+| `DB_NAME` | Nome do banco de dados | `todo_db` | - |
+| `JWT_SECRET` | Chave secreta para JWT | - | **Obrigatório** - Altere em produção |
+| `PORT` | Porta da aplicação | `3000` | - |
+| `NODE_ENV` | Ambiente de execução | `development` | `development` ou `production` |
+
+**Nota:** Quando executando com Docker, o `DB_HOST` deve ser `postgres` (nome do serviço no docker-compose).
 
 ## 📄 Licença
 
 Este projeto é privado e não possui licença.
 
+## 🐳 Docker
+
+O projeto inclui configuração completa do Docker com:
+
+- **Dockerfile** - Multi-stage build otimizado para produção
+- **docker-compose.yml** - Configuração para produção
+- **docker-compose.dev.yml** - Configuração para desenvolvimento com hot-reload
+- **PostgreSQL** - Banco de dados em container separado
+- **Volumes persistentes** - Dados do banco são mantidos entre reinicializações
+- **Health checks** - Garante que o banco está pronto antes de iniciar a aplicação
+
+Para mais detalhes sobre Docker, consulte o arquivo [DOCKER.md](./DOCKER.md).
+
 ## 👨‍💻 Autor
 
+Leandro Dantas
 Desenvolvido com ❤️ usando NestJS
+
+**Repositório:** [https://github.com/leandrosuy2/todo-backend](https://github.com/leandrosuy2/todo-backend)
