@@ -1,0 +1,61 @@
+version: '3.8'
+
+# Docker Compose para desenvolvimento com hot-reload
+# Use: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # Serviço do PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: todo-postgres-dev
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-todo_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todo-network-dev
+
+  # Serviço da aplicação NestJS (desenvolvimento)
+  app:
+    image: node:18-alpine
+    container_name: todo-backend-dev
+    working_dir: /app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-todo_db}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      PORT: ${PORT:-3000}
+      NODE_ENV: development
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run start:dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - todo-network-dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  todo-network-dev:
+    driver: bridge
+

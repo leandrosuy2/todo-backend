@@ -1,0 +1,508 @@
+# To-Do List Backend API
+
+API RESTful desenvolvida com NestJS para gerenciamento de tarefas (To-Do List) com autenticação JWT e banco de dados PostgreSQL.
+
+## 🚀 Tecnologias
+
+- **NestJS** - Framework Node.js progressivo
+- **PostgreSQL** - Banco de dados relacional
+- **Sequelize** - ORM para PostgreSQL
+- **JWT** - Autenticação via tokens
+- **Swagger** - Documentação interativa da API
+- **TypeScript** - Linguagem de programação
+- **class-validator** - Validação de dados
+
+## 📋 Pré-requisitos
+
+- Node.js (v18 ou superior)
+- PostgreSQL (v12 ou superior)
+- npm ou yarn
+
+## ⚙️ Instalação
+
+1. Clone o repositório:
+```bash
+git clone <repository-url>
+cd todo-backend
+```
+
+2. Instale as dependências:
+```bash
+npm install
+```
+
+3. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas credenciais do banco de dados:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=sua_senha
+DB_NAME=todo_db
+
+JWT_SECRET=seu-secret-key-super-seguro-aqui
+
+PORT=3000
+NODE_ENV=development
+```
+
+4. Crie o banco de dados PostgreSQL:
+```sql
+CREATE DATABASE todo_db;
+```
+
+5. Execute as migrações (o Sequelize criará as tabelas automaticamente em desenvolvimento):
+```bash
+npm run start:dev
+```
+
+## 🏃 Executando a aplicação
+
+```bash
+# Desenvolvimento
+npm run start:dev
+
+# Produção
+npm run build
+npm run start:prod
+```
+
+A aplicação estará disponível em `http://localhost:3000`
+
+A documentação Swagger estará disponível em `http://localhost:3000/api`
+
+## 📚 Endpoints da API
+
+### Autenticação
+
+#### POST /register
+Registra um novo usuário.
+
+**Request Body:**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response (201):**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### POST /login
+Autentica um usuário existente.
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Tarefas (Require autenticação)
+
+Todos os endpoints de tarefas requerem autenticação via Bearer Token no header:
+```
+Authorization: Bearer <token>
+```
+
+#### GET /tasks
+Lista todas as tarefas do usuário autenticado com paginação e filtros.
+
+**Query Parameters:**
+- `status` (opcional): `pending` ou `completed`
+- `page` (opcional): Número da página (padrão: 1)
+- `limit` (opcional): Itens por página (padrão: 10, máximo: 100)
+
+**Exemplo:**
+```
+GET /tasks?status=pending&page=1&limit=10
+```
+
+**Response (200):**
+```json
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Complete project documentation",
+      "description": "Write detailed documentation",
+      "status": "pending",
+      "userId": 1,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
+  }
+}
+```
+
+#### POST /tasks
+Cria uma nova tarefa.
+
+**Request Body:**
+```json
+{
+  "title": "Complete project documentation",
+  "description": "Write detailed documentation for the API"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": 1,
+  "title": "Complete project documentation",
+  "description": "Write detailed documentation for the API",
+  "status": "pending",
+  "userId": 1,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### GET /tasks/:id
+Obtém uma tarefa específica por ID.
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "title": "Complete project documentation",
+  "description": "Write detailed documentation",
+  "status": "pending",
+  "userId": 1,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### PUT /tasks/:id
+Atualiza uma tarefa existente.
+
+**Request Body (todos os campos são opcionais):**
+```json
+{
+  "title": "Updated title",
+  "description": "Updated description",
+  "status": "completed"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "title": "Updated title",
+  "description": "Updated description",
+  "status": "completed",
+  "userId": 1,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T12:00:00.000Z"
+}
+```
+
+#### PATCH /tasks/:id/complete
+Marca uma tarefa como concluída.
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "title": "Complete project documentation",
+  "description": "Write detailed documentation",
+  "status": "completed",
+  "userId": 1,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T12:00:00.000Z"
+}
+```
+
+#### DELETE /tasks/:id
+Exclui uma tarefa.
+
+**Response (200):**
+```json
+{
+  "message": "Task deleted successfully"
+}
+```
+
+## 📡 Comandos cURL
+
+Aqui estão todos os comandos cURL para testar a API. Substitua `YOUR_TOKEN` pelo token JWT obtido após o login.
+
+**Base URL:** `http://localhost:3000`
+
+### Autenticação
+
+#### 1. Registrar novo usuário
+```bash
+curl -X POST http://localhost:3000/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+#### 2. Login
+```bash
+curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+### Tarefas
+
+⚠️ **Nota:** Todos os endpoints de tarefas requerem autenticação. Substitua `YOUR_TOKEN` pelo token obtido no login.
+
+#### 3. Criar nova tarefa
+```bash
+curl -X POST http://localhost:3000/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "title": "Complete project documentation",
+    "description": "Write detailed documentation for the API"
+  }'
+```
+
+#### 4. Listar todas as tarefas (sem filtros)
+```bash
+curl -X GET http://localhost:3000/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 5. Listar tarefas com filtro de status
+```bash
+curl -X GET "http://localhost:3000/tasks?status=pending" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 6. Listar tarefas com paginação
+```bash
+curl -X GET "http://localhost:3000/tasks?page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 7. Listar tarefas com filtro e paginação
+```bash
+curl -X GET "http://localhost:3000/tasks?status=completed&page=1&limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 8. Obter tarefa por ID
+```bash
+curl -X GET http://localhost:3000/tasks/1 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 9. Atualizar tarefa (PUT)
+```bash
+curl -X PUT http://localhost:3000/tasks/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "title": "Updated title",
+    "description": "Updated description",
+    "status": "completed"
+  }'
+```
+
+#### 10. Marcar tarefa como concluída
+```bash
+curl -X PATCH http://localhost:3000/tasks/1/complete \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### 11. Deletar tarefa
+```bash
+curl -X DELETE http://localhost:3000/tasks/1 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Exemplo de fluxo completo
+
+1. **Registrar usuário:**
+```bash
+curl -X POST http://localhost:3000/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+2. **Fazer login e salvar o token:**
+```bash
+# No Windows PowerShell:
+$response = curl -X POST http://localhost:3000/login `
+  -H "Content-Type: application/json" `
+  -d '{\"email\":\"john@example.com\",\"password\":\"password123\"}'
+$token = ($response | ConvertFrom-Json).token
+
+# No Linux/Mac:
+TOKEN=$(curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john@example.com","password":"password123"}' \
+  | jq -r '.token')
+```
+
+3. **Criar tarefa usando o token:**
+```bash
+# Windows PowerShell:
+curl -X POST http://localhost:3000/tasks `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $token" `
+  -d '{\"title\":\"Minha primeira tarefa\",\"description\":\"Descrição da tarefa\"}'
+
+# Linux/Mac:
+curl -X POST http://localhost:3000/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"title":"Minha primeira tarefa","description":"Descrição da tarefa"}'
+```
+
+## 🏗️ Estrutura do Projeto
+
+```
+src/
+├── auth/                    # Módulo de autenticação
+│   ├── dto/                # DTOs de autenticação
+│   ├── guards/             # Guards (JWT Auth Guard)
+│   ├── strategies/         # Estratégias (JWT Strategy)
+│   ├── auth.controller.ts  # Controller de autenticação
+│   ├── auth.service.ts     # Service de autenticação
+│   └── auth.module.ts      # Módulo de autenticação
+├── tasks/                   # Módulo de tarefas
+│   ├── dto/                # DTOs de tarefas
+│   ├── tasks.controller.ts # Controller de tarefas
+│   ├── tasks.service.ts    # Service de tarefas
+│   └── tasks.module.ts     # Módulo de tarefas
+├── models/                  # Modelos Sequelize
+│   ├── user.model.ts       # Modelo de Usuário
+│   └── task.model.ts       # Modelo de Tarefa
+├── config/                  # Configurações
+│   └── database.config.ts  # Configuração do banco
+├── database/                # Módulo de banco de dados
+│   └── database.module.ts  # Módulo do banco
+├── app.module.ts           # Módulo principal
+└── main.ts                 # Arquivo de entrada
+```
+
+## 🔒 Segurança
+
+- Senhas são criptografadas usando `bcryptjs` com hash de 10 rounds
+- Autenticação via JWT com expiração de 7 dias
+- Validação de dados de entrada usando `class-validator`
+- Middleware de autenticação protege rotas privadas
+- CORS habilitado para comunicação com frontend
+
+## ✅ Validações
+
+### Registro/Login
+- Email deve ser válido
+- Senha deve ter no mínimo 6 caracteres
+- Nome é obrigatório
+
+### Tarefas
+- Título é obrigatório
+- Descrição é opcional
+- Status deve ser `pending` ou `completed`
+
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes e2e
+npm run test:e2e
+
+# Cobertura de testes
+npm run test:cov
+```
+
+## 📝 Documentação
+
+A documentação completa da API está disponível via Swagger em:
+```
+http://localhost:3000/api
+```
+
+## 🎯 Funcionalidades Implementadas
+
+- ✅ Autenticação de usuário (registro e login)
+- ✅ Autenticação JWT
+- ✅ Middleware de autenticação para rotas privadas
+- ✅ CRUD completo de tarefas
+- ✅ Marcar tarefas como concluídas
+- ✅ Filtrar tarefas por status (pendentes/concluídas)
+- ✅ Paginação no endpoint de listagem
+- ✅ Validação de dados de entrada
+- ✅ Documentação Swagger
+- ✅ Arquitetura em camadas (controllers, services, models)
+- ✅ Criptografia de senhas
+- ✅ Tratamento de erros
+
+## 🔧 Variáveis de Ambiente
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DB_HOST` | Host do PostgreSQL | `localhost` |
+| `DB_PORT` | Porta do PostgreSQL | `5432` |
+| `DB_USER` | Usuário do PostgreSQL | `postgres` |
+| `DB_PASSWORD` | Senha do PostgreSQL | `postgres` |
+| `DB_NAME` | Nome do banco de dados | `todo_db` |
+| `JWT_SECRET` | Chave secreta para JWT | - |
+| `PORT` | Porta da aplicação | `3000` |
+| `NODE_ENV` | Ambiente de execução | `development` |
+
+## 📄 Licença
+
+Este projeto é privado e não possui licença.
+
+## 👨‍💻 Autor
+
+Desenvolvido com ❤️ usando NestJS
