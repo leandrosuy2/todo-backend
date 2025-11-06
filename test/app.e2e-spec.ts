@@ -1,25 +1,52 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('App (e2e)', () => {
+  let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [
+        SequelizeModule.forRoot({
+          dialect: 'sqlite',
+          storage: ':memory:',
+          autoLoadModels: true,
+          synchronize: true,
+          logging: false,
+        }),
+        AppModule,
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('should be defined', () => {
+    expect(app).toBeDefined();
+  });
+
+  it('should have Swagger documentation available', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api-json')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res) => {
+        expect(res.body).toHaveProperty('openapi');
+        expect(res.body).toHaveProperty('info');
+      });
   });
 });

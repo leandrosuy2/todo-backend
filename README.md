@@ -541,16 +541,111 @@ src/
 
 ## 🧪 Testes
 
+O projeto possui uma suíte completa de testes, incluindo testes unitários e testes end-to-end (E2E).
+
+### 📊 Estrutura de Testes
+
+```
+src/
+├── auth/
+│   └── auth.service.spec.ts      # Testes unitários do AuthService (8 testes)
+└── tasks/
+    └── tasks.service.spec.ts      # Testes unitários do TasksService (12 testes)
+test/
+├── app.e2e-spec.ts                # Testes E2E da aplicação
+├── auth.e2e-spec.ts                # Testes E2E de autenticação (11 testes)
+└── tasks.e2e-spec.ts               # Testes E2E de tarefas (17 testes)
+```
+
+**Total: 20 testes unitários + 29 testes E2E = 49 testes**
+
+### 🚀 Executando os Testes
+
 ```bash
-# Testes unitários
+# Executar todos os testes unitários
 npm run test
 
-# Testes e2e
+# Executar testes unitários em modo watch (re-executa ao salvar arquivos)
+npm run test:watch
+
+# Executar testes unitários com cobertura de código
+npm run test:cov
+
+# Executar apenas testes E2E
 npm run test:e2e
 
-# Cobertura de testes
-npm run test:cov
+# Executar todos os testes (unitários + E2E)
+npm run test && npm run test:e2e
 ```
+
+### 📋 Cobertura de Testes
+
+#### Testes Unitários
+
+**AuthService** (8 testes):
+- ✅ Registro de usuário (sucesso e validações)
+- ✅ Login de usuário (sucesso e validações)
+- ✅ Validação de usuário por ID
+- ✅ Criptografia de senhas
+- ✅ Geração de tokens JWT
+
+**TasksService** (12 testes):
+- ✅ Criação de tarefas
+- ✅ Listagem com filtros e paginação
+- ✅ Busca por ID
+- ✅ Atualização de tarefas
+- ✅ Exclusão de tarefas
+- ✅ Marcar como concluída
+
+#### Testes E2E
+
+**Autenticação** (11 testes):
+- ✅ Registro de usuário (sucesso e casos de erro)
+- ✅ Login (sucesso e casos de erro)
+- ✅ Validação de dados de entrada
+- ✅ Tratamento de erros HTTP
+
+**Tarefas** (17 testes):
+- ✅ CRUD completo de tarefas
+- ✅ Filtros por status
+- ✅ Paginação
+- ✅ Isolamento de dados entre usuários
+- ✅ Autenticação e autorização
+- ✅ Validação de dados
+
+### 🔧 Configuração dos Testes
+
+- **Testes Unitários**: Usam mocks para Sequelize, JWT e bcrypt
+- **Testes E2E**: Usam SQLite em memória (`:memory:`) para isolamento completo
+- **Framework**: Jest com suporte TypeScript via `ts-jest`
+- **Timeout**: 30 segundos para testes E2E
+
+### 📈 Resultados Esperados
+
+Ao executar `npm run test`, você deve ver:
+
+```
+PASS src/auth/auth.service.spec.ts
+PASS src/tasks/tasks.service.spec.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       20 passed, 20 total
+```
+
+Ao executar `npm run test:e2e`, você deve ver:
+
+```
+PASS test/app.e2e-spec.ts
+PASS test/auth.e2e-spec.ts
+PASS test/tasks.e2e-spec.ts
+
+Test Suites: 3 passed, 3 total
+Tests:       29 passed, 29 total
+```
+
+### 📝 Documentação Detalhada
+
+Para mais informações sobre os testes, consulte o arquivo [TESTES.md](./TESTES.md).
 
 ## 📝 Documentação
 
@@ -573,6 +668,8 @@ http://localhost:3000/api
 - ✅ Arquitetura em camadas (controllers, services, models)
 - ✅ Criptografia de senhas
 - ✅ Tratamento de erros
+- ✅ **Testes unitários completos** (20 testes)
+- ✅ **Testes E2E completos** (29 testes)
 
 ## 🔧 Variáveis de Ambiente
 
